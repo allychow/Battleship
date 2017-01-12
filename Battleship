@@ -1,0 +1,1632 @@
+/*
+ * This one is the final working copy
+ * [BattleShip.java]
+ * A program designed to play BattleShip
+ * Author: Annie Chen, Joey Chan, Duffy Du, Allison Chow
+ * Date: May 14, 2015
+ */
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*; 
+import java.util.Scanner;
+import java.util.Random;
+
+public class BattleShipGUI extends JFrame implements ActionListener {
+  
+  JButton[][]BattleShip = new JButton[11][11]; //creates an array of buttons acting as our own game board (w/ extra row and column for labels along the sides)
+  String a; //creates a variable to store the corresponding letter to a numerical value used to declare button coordinate names
+  String fire; //variable to store the coordinate we fire to the opponent
+  String lastHit;//variable that keeps track of the lastHit coordinated
+  
+  int consecutiveHit = 0;//variable to keep track of how many times we hit the opponent's boad consecutively
+  int missesAfterHit = 0;//variable to keep track of how many times you missed after one hit
+  Boolean checkSameCoordinate = false;
+  String store;
+  
+  JButton enter = new JButton("ENTER"); //creates a button to tell the program the opponent has fired at us
+  
+  //creates blank labels to make the status panels look cleaner
+  JLabel blankLabel = new JLabel("       ");
+  JLabel blankLabel2 = new JLabel("       ");
+  JLabel blankLabel3 = new JLabel("       ");
+  JLabel blankLabel4 = new JLabel("       ");
+  
+  JLabel opponentstatusLabel = new JLabel("Opponent Status:", SwingConstants.CENTER); //label the status textfields
+  JLabel statusLabel = new JLabel("Your Status:", SwingConstants.CENTER); //label the status textfields
+  JLabel hitmissLabel = new JLabel("# OF HITS", SwingConstants.CENTER); //label for the column of our boats declaring the number of hits on each
+  JLabel hitmissoppLabel = new JLabel("# OF HITS", SwingConstants.CENTER); //label for the column of the opponent's boats declaring the number of hits on each
+  JLabel sunkLabel = new JLabel("SUNK", SwingConstants.CENTER); //label for the column of our boats declaring if they have been sunk 
+  JLabel sunkoppLabel = new JLabel ("SUNK", SwingConstants.CENTER); //label for the column of the opponent's boats declaring if they have been sunk  
+  JLabel shipLabel = new JLabel("If hit, the ship is: "); //label for the text field for us to identify which of the opponents boats we have hit
+  JLabel homLabel = new JLabel("Hit or Miss: "); //label for whether or not we have hit the opponent's boats
+  JTextField hitormiss = new JTextField(10); //text field for telling the ai whether or not we have hit the opponent's boats
+  JTextField ship = new JTextField(10); //text field for telling the ai which ship we have hit
+  
+  //creates label to display where the ai wants to fire
+  JLabel outputLabel = new JLabel ("Your output is: "); //label for our firing coordinates
+  JLabel output2Label = new JLabel (" "); //actual output of our firing coordinates
+  
+  //labels all of our ship names and the number of holes
+  JLabel carriershipLabel = new JLabel ("CARRIER - 5 HOLES", SwingConstants.CENTER);
+  JLabel battleshipLabel = new JLabel ("BATTLESHIP - 4 HOLES", SwingConstants.CENTER);
+  JLabel cruisershipLabel = new JLabel ("CRUISER - 3 HOLES", SwingConstants.CENTER);
+  JLabel submarineshipLabel = new JLabel ("SUBMARINE - 3 HOLES", SwingConstants.CENTER);
+  JLabel destroyershipLabel = new JLabel ("DESTROYER - 2 HOLES", SwingConstants.CENTER);
+  
+  //labels all of the opponent's ship names and number of holes
+  JLabel carriershipOppLabel = new JLabel ("CARRIER - 5 HOLES", SwingConstants.CENTER);
+  JLabel battleshipOppLabel = new JLabel ("BATTLESHIP - 4 HOLES", SwingConstants.CENTER);
+  JLabel cruisershipOppLabel = new JLabel ("CRUISER - 3 HOLES", SwingConstants.CENTER);
+  JLabel submarineshipOppLabel = new JLabel ("SUBMARINE - 3 HOLES", SwingConstants.CENTER);
+  JLabel destroyershipOppLabel = new JLabel ("DESTROYER - 2 HOLES", SwingConstants.CENTER);
+  
+  //creates the main panel everything will be put on
+  JPanel main = new JPanel();
+  
+  //creates the combined panel for statuses of all ships in the game
+  JPanel statcombined = new JPanel();
+  
+  //creates labels for your ship's hit/misses (status);
+  JLabel ship1HMLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship2HMLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship3HMLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship4HMLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship5HMLabel = new JLabel (" ", SwingConstants.CENTER);
+  
+  //creates labels for the opponent's ship hit/misses (status)
+  JLabel ship1HMoppLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship2HMoppLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship3HMoppLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship4HMoppLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship5HMoppLabel = new JLabel (" ", SwingConstants.CENTER); 
+  
+  //creates sunk labels (status) for your ships that will appear once a ship has been sunk
+  JLabel ship1SLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship2SLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship3SLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship4SLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship5SLabel = new JLabel (" ", SwingConstants.CENTER); 
+  
+  //creates sunk labels (status) for opponent's ships that will appear once a ship has been sunk
+  JLabel ship1SoppLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship2SoppLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship3SoppLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship4SoppLabel = new JLabel (" ", SwingConstants.CENTER);
+  JLabel ship5SoppLabel = new JLabel (" ", SwingConstants.CENTER); 
+  
+  JPanel outputpanel = new JPanel(); //creates a panel for our output to the opponent and what we input to our ai
+  JPanel pan1 = new JPanel(); //creates a panel for the array of buttons
+  JPanel boxpanel = new JPanel(); //creates a panel for to combine outputpanel and pan1
+  
+  int k = 2; //variable used to place the number coordinate in the array of boats
+  int j = 0; //variable used to track the spot in the array of boats
+  
+  //arrays for each of our boats to store the coordinates based on which game board is being used
+  String CARRIER[] = new String[5];
+  String CRUISER[] = new String[3];
+  String SUBMARINE[] = new String[3];
+  String BATTLESHIP[] = new String[4];
+  String DESTROYER[] = new String[2];
+  
+  //tracks the number of games played to run a new game board after each play
+  int numberOfGames;
+  
+  //takes the String value from the file tracking number of games
+  String word;
+  
+  //tracks number of hits on our ships
+  int ship1Htracker = 0;
+  int ship2Htracker = 0;
+  int ship3Htracker = 0;
+  int ship4Htracker = 0;
+  int ship5Htracker = 0;
+  //tracks number of hits on the opponent's ships
+  
+  int ship1Hopptracker = 0;
+  int ship2Hopptracker = 0;
+  int ship3Hopptracker = 0;
+  int ship4Hopptracker = 0;
+  int ship5Hopptracker = 0;
+  
+  //declares an icon for identifying where our boats are on screen 
+  ImageIcon boat = new ImageIcon("ship.png");
+  
+  int z;
+  int y;
+  String x;
+  
+  
+  // ------------------------------ constructor -------------------------- //
+  public BattleShipGUI(){
+    
+    setTitle("BattleShip!");
+    setSize(3000, 1000);
+    setResizable(false);
+    
+    //adds the main panel for the rest to be added onto
+    add(main);
+    
+    //finds the number of games played stored using file i/o
+    try {
+      
+      File myFile = new File("Number of Games.txt"); 
+      
+      Scanner input = new Scanner(myFile); 
+      
+      while (input.hasNext()) {   
+        
+        word = input.next();
+        numberOfGames = Integer.parseInt(word);
+        
+      }
+      
+      input.close();
+      
+    } catch (Exception E){};
+    
+    
+    FlowLayout layout1 = new FlowLayout(); //layout for the main panel and frame
+    GridLayout layout2 = new GridLayout(13, 3, 20, 20); //layout for the status panel
+    GridLayout layout3 = new GridLayout(2, 4, 10, 10); //layout for the output panel
+    GridLayout layout4 = new GridLayout(11, 11); //layout for the array of buttons/game board
+    BoxLayout layout5 = new BoxLayout(boxpanel,BoxLayout.Y_AXIS); //layout for the combined panel holding the array and output panel
+    
+    //sets appropriate layouts
+    setLayout(layout1);
+    main.setLayout(layout1);
+    statcombined.setLayout(layout2);
+    outputpanel.setLayout(layout3);
+    pan1.setLayout(layout4);
+    boxpanel.setLayout(layout5);
+    
+    //adds components needed for the status of the boats, including blank labels to add spacing between our ships' status and the opponent's
+    statcombined.add(statusLabel);
+    statcombined.add(hitmissLabel);
+    statcombined.add(sunkLabel);
+    
+    statcombined.add(carriershipLabel);
+    statcombined.add(ship1HMLabel);
+    statcombined.add(ship1SLabel);
+    statcombined.add(battleshipLabel);
+    statcombined.add(ship2HMLabel);
+    statcombined.add(ship2SLabel);
+    statcombined.add(cruisershipLabel);
+    statcombined.add(ship3HMLabel);
+    statcombined.add(ship3SLabel);
+    statcombined.add(submarineshipLabel);
+    statcombined.add(ship4HMLabel);
+    statcombined.add(ship4SLabel);
+    statcombined.add(destroyershipLabel);
+    statcombined.add(ship5HMLabel);
+    statcombined.add(ship5SLabel);
+    
+    statcombined.add(blankLabel);
+    statcombined.add(blankLabel2);
+    statcombined.add(blankLabel3);
+    
+    statcombined.add(opponentstatusLabel);
+    statcombined.add(hitmissoppLabel);
+    statcombined.add(sunkoppLabel);
+    
+    statcombined.add(carriershipOppLabel);
+    statcombined.add(ship1HMoppLabel);
+    statcombined.add(ship1SoppLabel);
+    statcombined.add(battleshipOppLabel);
+    statcombined.add(ship2HMoppLabel);
+    statcombined.add(ship2SoppLabel);
+    statcombined.add(cruisershipOppLabel);
+    statcombined.add(ship3HMoppLabel);
+    statcombined.add(ship3SoppLabel);
+    statcombined.add(submarineshipOppLabel);
+    statcombined.add(ship4HMoppLabel);
+    statcombined.add(ship4SoppLabel);
+    statcombined.add(destroyershipOppLabel);
+    statcombined.add(ship5HMoppLabel);
+    statcombined.add(ship5SoppLabel);
+    
+    //adds the labels in the top row of the grid layout for the output panel
+    outputpanel.add(homLabel);
+    outputpanel.add(shipLabel);
+    outputpanel.add(blankLabel4);
+    outputpanel.add(outputLabel); 
+    
+    //adds the text fields and labels where our input and output will go
+    outputpanel.add(hitormiss);
+    outputpanel.add(ship);  
+    outputpanel.add(enter);
+    outputpanel.add(output2Label);
+    output2Label.setText(randomCoordinate());
+    
+    
+    //declares a grid of buttons in the array beginning at spot [1][1] to leave a row and column empty for labelling the axis'
+    for (int i = 1; i < 11; i++) {
+      for (int k = 1; k < 11; k++) {
+        if (i == 1) {
+          a = "A";
+        } else if (i == 2) {
+          a = "B";
+        } else if (i == 3) {
+          a = "C";
+        } else if (i == 4) {
+          a = "D";
+        } else if (i == 5) {
+          a = "E";
+        } else if (i == 6) {
+          a = "F";
+        } else if (i == 7) {
+          a = "G";
+        } else if (i == 8) {
+          a = "H";
+        } else if (i == 9) {
+          a = "I";
+        } else if (i == 10) {
+          a = "J";
+        }
+        BattleShip[i][k] = new JButton("" + a + "," + k + "");
+      }
+    }
+    
+    //labels the rows by letter 
+    for (int i = 1; i < 11; i++) {
+      if (i == 1) {
+        a = "A";
+      } else if (i == 2) {
+        a = "B";
+      } else if (i == 3) {
+        a = "C";
+      } else if (i == 4) {
+        a = "D";
+      } else if (i == 5) {
+        a = "E";
+      } else if (i == 6) {
+        a = "F";
+      } else if (i == 7) {
+        a = "G";
+      } else if (i == 8) {
+        a = "H";
+      } else if (i == 9) {
+        a = "I";
+      } else if (i == 10) {
+        a = "J";
+      }
+      BattleShip[i][0] = new JButton("" + a + "");
+    }
+    
+    //creates an empty button where no information will be stored or displayed (for design purposes)
+    BattleShip[0][0] = new JButton();
+    BattleShip[0][0].setVisible(false);
+    
+    //labels the columns by number
+    for (int k = 1; k < 11; k++) {
+      BattleShip[0][k] = new JButton("" + k + "");
+    }
+    
+    //reads the method identifying which ship placement to use and fills the appropriate boat arrays with the new coordinates
+    placeShips();
+    
+    //adds action listeners to all buttons on the game board except for the labelling of columns and rows
+    for (int o = 0; o < 11; o++) {
+      for (int j = 0; j < 11; j++) {
+        if (o > 0 || j > 0) {
+          BattleShip[o][j].addActionListener(this);
+        }
+        if (o == 0 || j == 0) {
+          //will not allow the user to click on the labelled axis and changes the color of the buttons to identify them as labels
+          BattleShip[o][j].setEnabled(false);
+          BattleShip[o][j].setBackground(Color.WHITE);
+        }
+        //adds each button to pan1
+        pan1.add(BattleShip[o][j]);
+      }
+    }
+    
+    //adds an action listener to the enter button to alert the ai when the opponent has fired and now must fire back
+    enter.addActionListener(this);
+    
+    //adds the game board and output panel (which goes underneath the board) to one panel for easy addition to the main panel
+    boxpanel.add(pan1);
+    boxpanel.add(outputpanel);
+    
+    //adds the combined panel containing the game board and output panel, then the status panel next to it for design purposes
+    main.add(boxpanel);
+    main.add(statcombined); 
+    
+    //makes the GUI visible
+    setVisible(true);
+    
+  }
+  
+  
+  
+  // ------------------------------ action listener -------------------------- //
+  public void actionPerformed(ActionEvent event) {
+    
+    String command = event.getActionCommand(); //receives the user's command
+    
+    //disables and sets the background colour of the buttons on the board when pressed
+    for (int i = 1; i < 11; i++) {
+      for (int k = 1; k < 11; k++) {
+        
+        if (i == 1) {
+          a = "A";
+        } else if (i == 2) {
+          a = "B";
+        } else if (i == 3) {
+          a = "C";
+        } else if (i == 4) {
+          a = "D";
+        } else if (i == 5) {
+          a = "E";
+        } else if (i == 6) {
+          a = "F";
+        } else if (i == 7) {
+          a = "G";
+        } else if (i == 8) {
+          a = "H";
+        } else if (i == 9) {
+          a = "I";
+        } else if (i == 10) {
+          a = "J";
+        }
+        
+        if (command.equals("" + a + "," + k + "")) {
+          
+          BattleShip[i][k].setBackground(Color.lightGray);
+          BattleShip[i][k].setEnabled(false);
+          
+        }
+        
+      }
+      
+    }
+    
+    
+    //operates if the buttons of the carrier are pressed
+    if (command.equals(CARRIER[0]) || command.equals(CARRIER[1]) || command.equals(CARRIER[2]) || command.equals(CARRIER[3]) || command.equals(CARRIER[4])) {
+      
+      ship1Htracker++; //the counter for the number of hits on the carrier increases by one every time a carrier button is pressed
+      ship1HMLabel.setText("" + ship1Htracker);
+      
+      if (ship1Htracker == 5) { //determines whether the carrier has sunk depending on the number of hits
+        
+        ship1SLabel.setText("SUNK");
+        
+      }
+      
+      //operates if the buttons of the battleship are pressed
+    } else if (command.equals(BATTLESHIP[0]) || command.equals(BATTLESHIP[1]) || command.equals(BATTLESHIP[2]) || command.equals(BATTLESHIP[3])) {
+      
+      ship2Htracker++; //the counter for the number of hits on the battleship increases by one every time a battleship button is pressed
+      ship2HMLabel.setText("" + ship2Htracker);
+      
+      if (ship2Htracker == 4) { //determines whether the battleship has sunk depending on the number of hits
+        
+        ship2SLabel.setText("SUNK");
+        
+      }
+      
+      //operates if the buttons of the cruiser are pressed
+    } else if (command.equals(CRUISER[0]) || command.equals(CRUISER[1]) || command.equals(CRUISER[2])) {
+      
+      ship3Htracker++; //the counter for the number of hits on the cruiser increases by one every time a cruiser button is pressed
+      ship3HMLabel.setText("" + ship3Htracker);
+      
+      if (ship3Htracker == 3) { //determines whether the cruiser has sunk depending on the number of hits
+        
+        ship3SLabel.setText("SUNK");
+        
+      }
+      
+      //operates if the buttons of the submarine are pressed
+    } else if (command.equals(SUBMARINE[0]) || command.equals(SUBMARINE[1]) || command.equals(SUBMARINE[2])) {
+      
+      ship4Htracker++; //the counter for the number of hits on the submarine increases by one every time a submarine button is pressed
+      ship4HMLabel.setText("" + ship4Htracker);
+      
+      if (ship4Htracker == 3) { //determines whether the submarine has sunk depending on the number of hits
+        
+        ship4SLabel.setText("SUNK");
+        
+      }
+      
+      //operates if the buttons of the destroyer are pressed
+    } else if (command.equals(DESTROYER[0]) || command.equals(DESTROYER[1])) {
+      
+      ship5Htracker++; //the counter for the number of hits on the destroyer increases by one every time a destroyer button is pressed
+      ship5HMLabel.setText("" + ship5Htracker);
+      
+      if (ship5Htracker == 2) { //determines whether the destroyer has sunk depending on the number of hits
+        
+        ship5SLabel.setText("SUNK");
+        
+      }
+      
+      
+      //operates if the 'ENTER' button is pressed
+    } else if (command.equals("ENTER")) {
+      
+      //operates if an opponent's ship is hit, repeats the process of operation for the ai's ships except for the opponent's ships
+      if (hitormiss.getText().toUpperCase().equals("HIT")) {
+        
+        try{
+          //save the first coordinate that the AI decided to fire into a file
+          saveFiredShots(output2Label.getText(),hitormiss.getText().toUpperCase());
+        } catch (Exception E) {}
+        
+        //operates if the opponent's carrier is hit
+        if (ship.getText().toUpperCase().equals("CARRIER")) {
+          
+          if (ship1Hopptracker < 5) {
+            
+            ship1Hopptracker++;
+            ship1HMoppLabel.setText("" + ship1Hopptracker);
+            
+            
+            if (ship1Hopptracker == 5) {
+              
+              ship1SoppLabel.setText("SUNK");
+              
+            }
+            
+          }
+          
+          //operates if the opponent's battleship is hit
+        } else if (ship.getText().toUpperCase().equals("BATTLESHIP")) {
+          
+          if (ship2Hopptracker < 4) {
+            
+            ship2Hopptracker++;
+            ship2HMoppLabel.setText("" + ship2Hopptracker);
+            
+            if (ship2Hopptracker == 4) {
+              
+              ship2SoppLabel.setText("SUNK");
+              
+            }
+            
+          }
+          
+          //operates if the opponent's cruiser is hit
+        } else if (ship.getText().toUpperCase().equals("CRUISER")) {
+          
+          if (ship3Hopptracker < 3) {
+            
+            ship3Hopptracker++;
+            ship3HMoppLabel.setText("" + ship3Hopptracker);
+            
+            if (ship3Hopptracker == 3) {
+              
+              ship3SoppLabel.setText("SUNK");
+              
+            }
+            
+            
+          }
+          
+          //operates if the opponent's submarine is hit
+        } else if (ship.getText().toUpperCase().equals("SUBMARINE")) {
+          
+          if (ship4Hopptracker < 3) {
+            
+            ship4Hopptracker++;
+            ship4HMoppLabel.setText("" + ship4Hopptracker);
+            
+            if (ship4Hopptracker == 3) {
+              
+              ship4SoppLabel.setText("SUNK");
+              
+            }
+            
+          }
+          
+          //operates if the opponent's destroyer is hit
+        } else if (ship.getText().toUpperCase().equals("DESTROYER")) {
+          
+          if (ship5Hopptracker < 2) {
+            
+            ship5Hopptracker++;
+            ship5HMoppLabel.setText("" + ship5Hopptracker);
+            
+            if (ship5Hopptracker == 2) {
+              
+              ship5SoppLabel.setText("SUNK");
+              
+            }
+            
+          }
+          
+          //a message dialog that appears if an invalid ship has been entered
+        } else {
+          
+          JOptionPane.showMessageDialog(main, "Please enter a valid ship.");
+          
+        }
+        
+        
+        
+        //determines the next coordinate to fire after a hit
+        
+        try{
+          
+          //add one to the variable that keeps track of the number of consecutive hits
+          consecutiveHit++;
+          
+          
+          //if the ship has already sunk, instead of calling the method for consecutive hits, call the method to fire randomly with no repetition
+          if ((ship.getText().toUpperCase().equals("CARRIER") && ship1Hopptracker==5)
+                ||(ship.getText().toUpperCase().equals("BATTLESHIP") && ship2Hopptracker==4)
+                ||(ship.getText().toUpperCase().equals("CRUISER") && ship3Hopptracker==3)
+                ||(ship.getText().toUpperCase().equals("SUBMARINE") && ship4Hopptracker==3)
+                ||(ship.getText().toUpperCase().equals("DESTROYER") && ship5Hopptracker==2)
+             ){
+            
+            fire = fireShotNoRepetition();
+            
+            
+            //clear the variable for keeping track of numbers of consecutive hits
+            consecutiveHit = 0;
+            
+            //clear the variable for keeping track of numbers of misses after a hit
+            missesAfterHit = 0;
+            
+            //**********first hit********
+          } else if(consecutiveHit == 1){
+            
+            //save the last hit coordinate into a variable called lastHit
+            lastHit = output2Label.getText();
+            
+            //operate the method that fire a shot according to the last hit coordinate
+            fire = afterAHit(lastHit);
+            
+            
+          }
+          //***********second hit*********
+          else if (consecutiveHit >= 2){
+            //operate the method that fire a shot according to the last couple coordinates
+            fire = consecutiveHits(consecutiveHit, ship.getText().toUpperCase(), ship1Hopptracker, ship2Hopptracker, ship3Hopptracker, ship4Hopptracker, missesAfterHit);
+
+          }
+        } catch (Exception E) {}
+        
+        
+        //outputs the coordinates where the ai wants to fire on the opponent's board
+        output2Label.setText(fire);
+        
+        
+        //operates if no opponent ship is hit
+      } else if (hitormiss.getText().toUpperCase().equals("MISS")) {
+        
+        try{
+          //save the first coordinate that the AI decided to fire into a file
+          saveFiredShots(output2Label.getText(),hitormiss.getText().toUpperCase());
+        } catch (Exception E) {}
+        
+        //determines the next coordinate to fire after a miss
+        
+        try {
+          // if we hit once and then missed afterwards
+          if (consecutiveHit==1 && missesAfterHit>=0){
+            //call the method to determine the next coordinate to fire
+            fire = afterAHit(lastHit);
+            
+            //add 1 to the variable that keeps track of the misses after one hit
+            missesAfterHit++;
+            
+          }else if (
+                    (consecutiveHit >= 2 && ship1Hopptracker!=0 && ship1Hopptracker<5)
+                      ||(consecutiveHit >= 2 && ship2Hopptracker!=0 && ship2Hopptracker<4)
+                      ||(consecutiveHit >= 2 && ship3Hopptracker!=0 && ship3Hopptracker<3)
+                      ||(consecutiveHit >= 2 && ship4Hopptracker!=0 && ship4Hopptracker<3)
+                   )
+          {
+            // if we missed but the opponent's ship is not sunk, call the method fire the other side
+            
+            fire = fireOppositeDirection(ship1Hopptracker, ship2Hopptracker, ship3Hopptracker, ship4Hopptracker, missesAfterHit, "missed the boat");
+
+            
+          }else {
+            //call the method to determine the next coordinate to fire (randomly from this point)
+            fire = fireShotNoRepetition();
+            
+            //clear the variable for keeping track of numbers of consecutive hits
+            consecutiveHit = 0;
+            
+            //clear the variable for keeping track of numbers of misses after a hit
+            missesAfterHit = 0;
+          }
+          
+        }catch (Exception E) {}
+        
+        try{
+          
+          store = fire;
+          
+          fire = check(fire);
+          
+          if (fire.equals(store)){
+            checkSameCoordinate = true;
+          }
+          
+          if (checkSameCoordinate == false){
+            //clear the variable for keeping track of numbers of consecutive hits
+            consecutiveHit = 0;
+            
+            //clear the variable for keeping track of numbers of misses after a hit
+            missesAfterHit = 0;
+          }
+        } catch (Exception E){}
+        
+        //outputs the coordinates where the ai wants to fire on the opponent's board
+        output2Label.setText(fire);
+        
+        
+        //a message dialog that appears if 'hit' or 'miss' is not inputted
+      } else {
+        
+        JOptionPane.showMessageDialog(main, "Please enter 'hit' or 'miss'."); 
+        
+      }
+      
+      
+      //a message dialog that appears if all of the opponent's ships has been hit
+      if (ship1SoppLabel.getText().equals("SUNK") && ship2SoppLabel.getText().equals("SUNK") && ship3SoppLabel.getText().equals("SUNK") && ship4SoppLabel.getText().equals("SUNK") && ship5SoppLabel.getText().equals("SUNK")) {
+        
+        JOptionPane.showMessageDialog(main, "All opponent ships have sunk. You have won!");
+         hitormiss.setEditable(false);
+         ship.setEditable(false);
+         enter.setEnabled(false);
+         output2Label.setText("");
+        
+        //disables the buttons on the board after the ai has won
+      for (int i = 1; i < 11; i++) {
+        for (int k = 1; k < 11; k++) {
+          
+          if (i == 1) {
+            a = "A";
+          } else if (i == 2) {
+            a = "B";
+          } else if (i == 3) {
+            a = "C";
+          } else if (i == 4) {
+            a = "D";
+          } else if (i == 5) {
+            a = "E";
+          } else if (i == 6) {
+            a = "F";
+          } else if (i == 7) {
+            a = "G";
+          } else if (i == 8) {
+            a = "H";
+          } else if (i == 9) {
+            a = "I";
+          } else if (i == 10) {
+            a = "J";
+          }
+          
+            BattleShip[i][k].setEnabled(false);
+            
+          }
+          
+        }
+        
+      
+        //repeat of above
+        try {
+          
+          File myFile = new File("Number of Games.txt"); 
+          
+          PrintWriter output = new PrintWriter(myFile);   
+          Scanner input = new Scanner(myFile); 
+          
+          while (input.hasNext()) {
+            
+            numberOfGames = Integer.parseInt(input.next());
+            
+          }
+          
+          input.close();
+          
+          numberOfGames = numberOfGames + 1;
+          
+          if (numberOfGames > 2) {
+            
+            numberOfGames = 0;
+            
+          }
+          
+          output.println(numberOfGames);
+          output.close();
+          
+        } catch (Exception E){};
+        
+      }
+      
+      hitormiss.setText("");
+      ship.setText("");
+      
+    }
+    
+    
+    //a message dialog that appears if all of the ai's ships has been hit
+    if (ship1SLabel.getText().equals("SUNK") && ship2SLabel.getText().equals("SUNK") && ship3SLabel.getText().equals("SUNK") && ship4SLabel.getText().equals("SUNK") && ship5SLabel.getText().equals("SUNK")) {
+      
+      JOptionPane.showMessageDialog(main, "All ships have sunk. The opponent has won!");
+       hitormiss.setEditable(false);
+       ship.setEditable(false);
+       enter.setEnabled(false);
+       output2Label.setText("");
+      
+      //disables the buttons on the board after the opponent has won
+      for (int i = 1; i < 11; i++) {
+        for (int k = 1; k < 11; k++) {
+          
+          if (i == 1) {
+            a = "A";
+          } else if (i == 2) {
+            a = "B";
+          } else if (i == 3) {
+            a = "C";
+          } else if (i == 4) {
+            a = "D";
+          } else if (i == 5) {
+            a = "E";
+          } else if (i == 6) {
+            a = "F";
+          } else if (i == 7) {
+            a = "G";
+          } else if (i == 8) {
+            a = "H";
+          } else if (i == 9) {
+            a = "I";
+          } else if (i == 10) {
+            a = "J";
+          }
+          
+            BattleShip[i][k].setEnabled(false);
+            
+          }
+          
+        }
+      
+      
+      //writes in the file to track that another game has been played
+      try {
+        
+        File myFile = new File("Number of Games.txt"); 
+        
+        PrintWriter output = new PrintWriter(myFile); //creates a print writer to allow us to write in the file   
+        Scanner input = new Scanner(myFile); //creates a scanner to allow us to read information existing in the file
+        
+        while (input.hasNext()) { //takes the value written in the last line of the file as numberOfGames
+          
+          numberOfGames = Integer.parseInt(input.next()); //converts the string to an integer
+          
+        }
+        
+        input.close();
+        
+        //new information to be written is the current number of games + 1
+        numberOfGames = numberOfGames + 1;
+        
+        //if the number of games exceeds the max number of game boards created, then numberOfGames goes back to zero to start the cycle of game boards again
+        if (numberOfGames > 2) {
+          
+          numberOfGames = 0;
+          
+        }
+        
+        //prints the numberOfGames in the file to be read at the start of a new game
+        output.println(numberOfGames);
+        //closes the print writer
+        output.close();
+        
+      } catch (Exception E){};
+      
+    }
+    
+  }
+   
+    
+  
+  
+  // --------------------------- after a hit method -------------------------- //
+  public static String afterAHit(String lastHitCoordinate) throws Exception{
+    String options[] = new String[4];
+    char coordinateLetter;
+    int coordinateNumber;
+    char coordinateLetterTemp;
+    int coordinateNumberTemp;
+    String fireCoordinate;
+    int randomNum;//variable to store a random number that correspond to one slot in the option array
+    Boolean alreadyFired;//boolean variable for checking if the spot is already fired
+    
+    String firedCoordinate[] = new String[100];
+    String hitOrMiss[] = new String[100];
+    int count = 0;//counter for the arrays
+    
+    //create random number generator that creates random numbers
+    Random randomNumber = new Random();
+    
+    //file called 'fired coordinates.txt'
+    File file = new java.io.File("fired coordinates.txt");
+    //create a scanner called input for importing information from the file
+    Scanner input = new Scanner(file); 
+    
+    // *********************** READING DATA ******************
+    
+    //extracting data from the file and outputing it in the console
+    while(input.hasNext()){
+      // store data from the file and display it in the console in a meaningful way
+      firedCoordinate[count] = input.next();
+      hitOrMiss[count] = input.next();
+      //System.out.println(firedCoordinate[count] + " - " + hitOrMiss[count]);
+      if (count<99){
+        count++;
+      }
+    } 
+    
+    
+    //we have read all the data in the file close it
+    input.close();
+    
+    
+    //save the letter part of the coordinate1 into a char variable
+    coordinateLetter = lastHitCoordinate.charAt(0); 
+    System.out.println("coordinateLetter = " + coordinateLetter);
+    
+    //save the integer part of the coordinate1 into an int variable
+    coordinateNumber = Integer.valueOf(lastHitCoordinate.substring(2));
+    System.out.println("coordinateNumber = " + coordinateNumber);
+    
+    //initialize the array variable
+    if (coordinateNumber!=1){
+      coordinateNumberTemp = coordinateNumber - 1;
+      options[0] = Character.toString(coordinateLetter) + "," + Integer.toString(coordinateNumberTemp);
+      System.out.println("options[0] = " + options[0]);
+    }
+    
+    if (coordinateNumber!=10){
+      coordinateNumberTemp = coordinateNumber + 1;
+      options[1] = Character.toString(coordinateLetter) + "," + Integer.toString(coordinateNumberTemp);
+      System.out.println("options[1] = " + options[1]);
+    }
+    
+    if (coordinateLetter != 'A'){
+      coordinateLetterTemp = (char)(coordinateLetter - 1);
+      options[2] = Character.toString(coordinateLetterTemp) + "," + Integer.toString(coordinateNumber);
+      System.out.println("options[2] = " + options[2]);
+    }
+    
+    if (coordinateLetter != 'J'){
+      coordinateLetterTemp = (char)(coordinateLetter + 1);
+      options[3] = Character.toString(coordinateLetterTemp) + "," + Integer.toString(coordinateNumber);
+      System.out.println("options[3] = " + options[3]);
+    }
+    
+    // check for repetition
+    do {
+      alreadyFired = false;
+      
+      //generate random numbers from 0 to 3 for determining the 4 choices to hit
+      randomNum = randomNumber.nextInt(4);
+      System.out.println("randomNum = " + randomNum);
+      System.out.println("options[randomNum] = " + options[randomNum]);
+      
+      //check if the coordinate is already fired
+      for (int i =0; i<100;i++){
+        if (firedCoordinate[i]!= null && options[randomNum] != null && options[randomNum].equals(firedCoordinate[i])){
+          alreadyFired = true;
+        }
+      }
+      
+    }while (alreadyFired == true || options[randomNum] == null);
+    
+    fireCoordinate = options[randomNum];
+    
+    return fireCoordinate;
+  }
+  
+    
+  
+  // -------------------------------- consecutiveHits Method ------------------------ //
+  public static String consecutiveHits(int consecutiveHits, String ship, int ship1Hopptracker, int ship2Hopptracker, int ship3Hopptracker, int ship4Hopptracker,  int missesAfterHit) throws Exception{
+    String firedCoordinate[] = new String[100];
+    String hitOrMiss[] = new String[100];
+    int count = 0;//counter for the arrays
+    char coordinateLetter1, coordinateLetter2;
+    int coordinateNumber1, coordinateNumber2;
+    String fireCoordinate;
+    String c1, c2;
+    Boolean alreadyFired;
+    
+    //file called 'fired coordinates.txt'
+    File file = new java.io.File("fired coordinates.txt");
+    //create a scanner called input for importing information from the file
+    Scanner input = new Scanner(file); 
+    
+    // ******************* READING DATA ******************
+    
+    while(input.hasNext()){
+      // store data from the file and display it in the console in a meaningful way
+      firedCoordinate[count] = input.next();
+      hitOrMiss[count] = input.next();
+      //System.out.println(firedCoordinate[count] + " - " + hitOrMiss[count]);
+      if (count<99){
+        count++;
+      }
+    } 
+    
+    
+    //we have read all the data in the file close it
+    input.close();
+    
+    System.out.println("Inside the consecutive hit method");
+    
+    
+    //save the letter part of the coordinate1 into a char variable
+    coordinateLetter1 = firedCoordinate[count - 2 - missesAfterHit].charAt(0); 
+    System.out.println("coordinateLetter1 = " + coordinateLetter1);
+    
+    //save the integer part of the coordinate1 into an int variable
+    coordinateNumber1 = Integer.valueOf(firedCoordinate[count - 2 - missesAfterHit].substring(2));
+    System.out.println("coordinateNumber1 = " + coordinateNumber1);
+    
+    //save the letter part of the coordinate2 into a char variable
+    coordinateLetter2 = firedCoordinate[count - 1].charAt(0); 
+    System.out.println("coordinateLetter2 = " + coordinateLetter2);
+    
+    //save the integer part of the coordinate2 in to an int variable
+    coordinateNumber2 = Integer.valueOf(firedCoordinate[count - 1].substring(2));
+    System.out.println("coordinateNumber2 = " + coordinateNumber2);
+    
+    
+    if (coordinateNumber1<coordinateNumber2){
+      coordinateNumber2++;
+      System.out.println("coordinateNumber2++ = " + coordinateNumber2);
+    } else if (coordinateNumber2<coordinateNumber1){
+      coordinateNumber2--;
+      System.out.println("coordinateNumber2-- = " + coordinateNumber2);
+    } else if (coordinateLetter1>coordinateLetter2){
+      //alphabetical order backwards
+      coordinateLetter2--;// = (char)(coordinateLetter2 - 1);
+      System.out.println("coordinateLetter2--  = " + coordinateLetter2);
+    } else if (coordinateLetter1<coordinateLetter2){
+      //alphabetical order
+      coordinateLetter2++; // = (char)(coordinateLetter2 + 1);
+      System.out.println("coordinateLetter2++  = " + coordinateLetter2);
+    }
+    
+    //convert the letter part and the integer part of the coordinate back to the string
+    c1 = Character.toString(coordinateLetter2);
+    c2 = Integer.toString(coordinateNumber2);
+    
+    fireCoordinate = c1 + "," + c2;
+    
+    
+    //check if it will be out of bound
+    if (coordinateNumber2==0 || coordinateNumber2==11 || coordinateLetter2 == 'A'-1 || coordinateLetter2 == 'K'){
+      System.out.println("out of bound, calling fireOppositeDirection method...");
+      fireCoordinate = fireOppositeDirection(consecutiveHits,ship2Hopptracker, ship3Hopptracker,ship4Hopptracker,missesAfterHit, "out of bound");
+      
+    }
+    
+    
+    //check if the coordinate has already been fired
+    alreadyFired = false;
+    
+    for (int i=0;i<100;i++){
+      if (firedCoordinate[i]!= null && firedCoordinate[i].equals(fireCoordinate)){
+        //System.out.println("already fired coordinates matched...");
+        alreadyFired = true;
+      }
+    }
+    System.out.println("ship1Hopptracker = " + ship1Hopptracker);
+    System.out.println("ship2Hopptracker = " + ship2Hopptracker);
+    System.out.println("ship3Hopptracker = " + ship3Hopptracker);
+    System.out.println("ship4Hopptracker = " + ship4Hopptracker);
+    
+    
+    
+    if (alreadyFired == true){
+      System.out.println("coordinate already been fired, using calling fireOppositeDirection method... (inside consecutive hit method)");
+      fireCoordinate = fireOppositeDirection(ship1Hopptracker, ship2Hopptracker, ship3Hopptracker,ship4Hopptracker,missesAfterHit,"already fired");
+    }
+    
+    return fireCoordinate;
+  }
+  
+  
+  
+  //---------------------------------------fireOppositeDirection Method ----------------------------------
+  public static String fireOppositeDirection(int ship1Hopptracker,int ship2Hopptracker,int ship3Hopptracker,int ship4Hopptracker, int missesAfterHit, String problem) throws Exception{
+    String firedCoordinate[] = new String[100];
+    String hitOrMiss[] = new String[100];
+    int count = 0;//counter for the arrays
+    String fireCoordinate;
+    String c1, c2;
+    char coordinateLetter1, coordinateLetter2;
+    int coordinateNumber1, coordinateNumber2;
+    
+    //file called 'fired coordinates.txt'
+    File file = new java.io.File("fired coordinates.txt");
+    //create a scanner called input for importing information from the file
+    Scanner input = new Scanner(file); 
+    
+    // ******************* READING DATA ******************
+    
+    while(input.hasNext()){
+      // store data from the file and display it in the console in a meaningful way
+      firedCoordinate[count] = input.next();
+      hitOrMiss[count] = input.next();
+      //System.out.println(firedCoordinate[count] + " - " + hitOrMiss[count]);
+      if (count<99){
+        count++;
+      }
+    } 
+    
+    
+    //we have read all the data in the file close it
+    input.close();
+    
+    
+    System.out.println("Inside the fireOppositeDirection method");
+    
+    //*************************** looking for the array index number *******************
+    
+    System.out.println(problem);
+    
+    if (problem.equals("missed the boat")){
+      
+      //find the array index of the first hit on that boat
+      if (ship1Hopptracker!=0 && ship1Hopptracker<5){
+        //carrier
+        count = count - ship1Hopptracker;
+        System.out.println("ship 1 - carrier" );
+        
+      } else if (ship2Hopptracker!=0 && ship2Hopptracker<4){
+        //battleship
+        count = count - ship2Hopptracker;
+        System.out.println("ship 2 - battleship" );
+        
+      } else if (ship3Hopptracker!=0 && ship3Hopptracker<3){
+        //cruiser
+        count = count - ship3Hopptracker;
+        System.out.println("ship 3 - cruiser" );
+        
+      } else if (ship4Hopptracker!=0 && ship4Hopptracker<3){
+        //submarine
+        count = count - ship4Hopptracker;
+        System.out.println("ship 4 - submarine" );
+        
+      }
+      
+      System.out.println("missesAfterHit = " + missesAfterHit);
+      System.out.println("count = " + count);
+      System.out.println("firedCoordinate[count] = " + firedCoordinate[count]);
+      System.out.println("firedCoordinate[count - missesAfterHit - 1] = " + firedCoordinate[count - missesAfterHit - 1]);
+      
+      //save the letter part of the coordinate 2 into a char variable
+      coordinateLetter2 = firedCoordinate[count].charAt(0); 
+      System.out.println("coordinateLetter2 = " + coordinateLetter2);
+      
+      //save the integer part of the coordinate 2 in to an int variable
+      coordinateNumber2 = Integer.valueOf(firedCoordinate[count].substring(2));
+      System.out.println("coordinateNumber2 = " + coordinateNumber2);
+      
+      //save the letter part of the coordinate 1 into a char variable
+      coordinateLetter1 = firedCoordinate[count - missesAfterHit - 1].charAt(0); 
+      System.out.println("coordinateLetter1 = " + coordinateLetter1);
+      
+      //save the integer part of the coordinate 1 into an int variable
+      coordinateNumber1 = Integer.valueOf(firedCoordinate[count - missesAfterHit - 1].substring(2));
+      System.out.println("coordinateNumber1 = " + coordinateNumber1);
+      
+    } else if (problem.equals("out of bound")){
+      //from the consecutive method (when if running consecutive hits method, the coordinate will be out of bound)
+      
+      //find the array index of the first hit on that boat
+      if (ship1Hopptracker!=0 && ship1Hopptracker<5){
+        //carrier
+        count = count - ship1Hopptracker;
+        System.out.println("ship 1 - carrier" );
+        
+      } else if (ship2Hopptracker!=0 && ship2Hopptracker<4){
+        //battleship
+        count = count - ship2Hopptracker;
+        System.out.println("ship 2 - battleship" );
+        
+      } else if (ship3Hopptracker!=0 && ship3Hopptracker<3){
+        //cruiser
+        count = count - ship3Hopptracker;
+        System.out.println("ship 3 - cruiser" );
+        
+      } else if (ship4Hopptracker!=0 && ship4Hopptracker<3){
+        //submarine
+        count = count - ship4Hopptracker;
+        System.out.println("ship 4 - submarine" );
+        
+      }
+      
+      
+      count++;
+      
+      System.out.println("consecutive hits out of bound, running the fireOppositeDirection method...");
+      
+      System.out.println("missesAfterHit = " + missesAfterHit);
+      System.out.println("count = " + count);
+      System.out.println("firedCoordinate[count] = " + firedCoordinate[count]);
+      System.out.println("firedCoordinate[count - missesAfterHit - 1] = " + firedCoordinate[count - missesAfterHit - 1]);
+      
+      
+      
+      //save the letter part of the coordinate 2 into a char variable
+      coordinateLetter2 = firedCoordinate[count].charAt(0); 
+      System.out.println("coordinateLetter2 = " + coordinateLetter2);
+      
+      //save the integer part of the coordinate 2 in to an int variable
+      coordinateNumber2 = Integer.valueOf(firedCoordinate[count].substring(2));
+      System.out.println("coordinateNumber2 = " + coordinateNumber2);
+      
+      //save the letter part of the coordinate 1 into a char variable
+      coordinateLetter1 = firedCoordinate[count - missesAfterHit - 1].charAt(0); 
+      System.out.println("coordinateLetter1 = " + coordinateLetter1);
+      
+      //save the integer part of the coordinate 1 into an int variable
+      coordinateNumber1 = Integer.valueOf(firedCoordinate[count - missesAfterHit - 1].substring(2));
+      System.out.println("coordinateNumber1 = " + coordinateNumber1);
+      
+    } else /*if (problem.equals("already fired"))*/{
+      //find the array index of the first hit on that boat
+      if (ship1Hopptracker!=0 && ship1Hopptracker<5){
+        //carrier
+        count = count - ship1Hopptracker;
+        System.out.println("ship 1 - carrier" );
+        
+      } else if (ship2Hopptracker!=0 && ship2Hopptracker<4){
+        //battleship
+        count = count - ship2Hopptracker;
+        System.out.println("ship 2 - battleship" );
+        
+      } else if (ship3Hopptracker!=0 && ship3Hopptracker<3){
+        //cruiser
+        count = count - ship3Hopptracker;
+        System.out.println("ship 3 - cruiser" );
+        
+      } else if (ship4Hopptracker!=0 && ship4Hopptracker<3){
+        //submarine
+        count = count - ship4Hopptracker;
+        System.out.println("ship 4 - submarine" );
+        
+      }
+      count++;
+      
+      
+      System.out.println("missesAfterHit = " + missesAfterHit);
+      System.out.println("count = " + count);
+      System.out.println("firedCoordinate[count] = " + firedCoordinate[count]);
+      System.out.println("firedCoordinate[count - missesAfterHit - 1] = " + firedCoordinate[count - missesAfterHit - 1]);
+      
+      //save the letter part of the coordinate 2 into a char variable
+      coordinateLetter2 = firedCoordinate[count].charAt(0); 
+      System.out.println("coordinateLetter2 = " + coordinateLetter2);
+      
+      //save the integer part of the coordinate 2 in to an int variable
+      coordinateNumber2 = Integer.valueOf(firedCoordinate[count].substring(2));
+      System.out.println("coordinateNumber2 = " + coordinateNumber2);
+      
+      //save the letter part of the coordinate 1 into a char variable
+      coordinateLetter1 = firedCoordinate[count - missesAfterHit - 1].charAt(0); 
+      System.out.println("coordinateLetter1 = " + coordinateLetter1);
+      
+      //save the integer part of the coordinate 1 into an int variable
+      coordinateNumber1 = Integer.valueOf(firedCoordinate[count - missesAfterHit - 1].substring(2));
+      System.out.println("coordinateNumber1 = " + coordinateNumber1);
+      
+    }
+    
+    // ********************MANIPULATIN DATA**************************
+    
+    if (coordinateNumber1<coordinateNumber2){
+      coordinateNumber1--;
+      System.out.println("coordinateNumber1-- = " + coordinateNumber1);
+    } else if (coordinateNumber2<coordinateNumber1){
+      coordinateNumber1++;
+      System.out.println("coordinateNumber1++ = " + coordinateNumber1);
+    } else if (coordinateLetter1>coordinateLetter2){
+      //alphabetical order backwards
+      
+      coordinateLetter1++;// = (char)(coordinateLetter2 - 1);
+      System.out.println("coordinateLetter1++  = " + coordinateLetter1);
+      
+    } else if (coordinateLetter1<coordinateLetter2){
+      //alphabetical order
+      coordinateLetter1--; // = (char)(coordinateLetter2 + 1);
+      System.out.println("coordinateLetter1--  = " + coordinateLetter1);
+    }
+    
+    
+    //convert the letter part and the integer part of the coordinate back to the string
+    c1 = Character.toString(coordinateLetter1);
+    c2 = Integer.toString(coordinateNumber1);
+    
+    fireCoordinate = c1 + "," + c2;
+    
+    return fireCoordinate;
+  }
+  
+  
+// ------------------------------ fireShotNoRepetition Method ----------------------------------- //
+  public static String fireShotNoRepetition() throws Exception{
+    
+    //create variables
+    String firedCoordinate[] = new String[100];
+    String hitOrMiss[] = new String[100];
+    int count = 0;
+    Boolean alreadyFired = false;
+    String fireCoordinate;
+    
+    System.out.println("inside fireShotNoRepetition method...");
+    
+    //file called 'fired coordinates.txt'
+    File file = new java.io.File("fired coordinates.txt");
+    //create a scanner called input for importing information from the file
+    Scanner input = new Scanner(file); 
+    
+    // *********************** READING DATA ******************
+    
+    //extracting data from the file and outputing it in the console
+    while(input.hasNext()){
+      // store data from the file and display it in the console in a meaningful way
+      firedCoordinate[count] = input.next();
+      hitOrMiss[count] = input.next();
+      //System.out.println(firedCoordinate[count] + " - " + hitOrMiss[count]);
+      if (count<99){
+        count++;
+      }
+    } 
+    
+    
+    //we have read all the data in the file close it
+    input.close();
+    
+    
+    do {
+      alreadyFired = false;
+      //get a random coordinate to fire
+      fireCoordinate = randomCoordinate();
+      System.out.println(fireCoordinate);
+      
+      
+      //check if the coordinate has already been fired
+      for (int i=0;i<100;i++){
+        if (firedCoordinate[i]!= null && firedCoordinate[i].equals(fireCoordinate)){
+          //System.out.println("already fired coordinates matched...");
+          alreadyFired = true;
+        }
+      }
+    }while (alreadyFired == true);
+    
+    
+    
+    return fireCoordinate;
+  }
+  
+  
+  
+  // -------------------------------------- file I/O method ------------------------------------- //
+  public static void saveFiredShots(String firedCoordinate, String hitOrMiss) throws Exception{
+    
+    //save the coordinate that the AI decided to fire and the result (hit/miss) into a file
+    
+    //file called 'fired coordinates.txt'
+    File file = new java.io.File("fired coordinates.txt");
+    //create a PirntWriter and associate it with the file we created
+    PrintWriter output = new PrintWriter(new FileWriter(file, true));
+    //create a scanner called input for importing information from the file
+    //Scanner input = new Scanner(file);
+    
+    
+    //*********WRITING DATA INTO THE FILE**************
+    
+    //output a message to the user 
+    //System.out.println("Writing fired coordinates to a file...");
+    
+    //use the writer to store information into the file (\n is a new line)
+    output.println(firedCoordinate + " " + hitOrMiss);
+    output.println("\n");
+    
+    // done writing data, close the file
+    output.close();
+    
+  }
+  
+  
+  
+  //generates random coordinates
+  public static String randomCoordinate(){
+    String randomCoordinate;
+    char charc1;
+    String c1;
+    int c2;
+    
+    //create random number generator that creates random numbers
+    Random randomNumber = new Random();
+    
+    charc1 = Character.toUpperCase((char)(randomNumber.nextInt(10) + 'a'));//generate random letters from a to j
+    c2 = 1 + randomNumber.nextInt(10);//generate random numbers from 1 to 10
+    
+    
+    c1 = Character.toString(charc1);//conver the letter from char to string
+    
+    randomCoordinate = c1 + "," + c2;
+    
+    return randomCoordinate;
+  }
+  
+  //--------------------------------double check already fired and out of bound method---------------------------------
+  public static String check(String finalFireCoordinate) throws Exception{
+    
+    //create variables
+    char coordinateLetter;
+    int coordinateNumber;
+    String firedCoordinate[] = new String[100];
+    String hitOrMiss[] = new String[100];
+    Boolean alreadyFired;
+    int count = 0;
+    
+    //file called 'fired coordinates.txt'
+    File file = new java.io.File("fired coordinates.txt");
+    //create a scanner called input for importing information from the file
+    Scanner input = new Scanner(file); 
+    
+    // *********************** READING DATA ******************
+    
+    //extracting data from the file and outputing it in the console
+    while(input.hasNext()){
+      // store data from the file and display it in the console in a meaningful way
+      firedCoordinate[count] = input.next();
+      hitOrMiss[count] = input.next();
+      //System.out.println(firedCoordinate[count] + " - " + hitOrMiss[count]);
+      if (count<99){
+        count++;
+      }
+    } 
+    
+    
+    //we have read all the data in the file close it
+    input.close();
+    
+    
+    //check if the coordinate has already been fired
+    alreadyFired = false;
+    
+    for (int i=0;i<100;i++){
+      if (firedCoordinate[i]!= null && firedCoordinate[i].equals(finalFireCoordinate)){
+        System.out.println("already fired coordinates matched...");
+        alreadyFired = true;
+      }
+    }
+    
+    //check if it will be out of bound
+    
+    //save the letter part of the coordinate1 into a char variable
+    coordinateLetter = finalFireCoordinate.charAt(0); 
+    System.out.println("coordinateLetter = " + coordinateLetter);
+    
+    //save the integer part of the coordinate1 into an int variable
+    coordinateNumber = Integer.valueOf(finalFireCoordinate.substring(2));
+    System.out.println("coordinateNumber = " + coordinateNumber);
+      
+    
+    if (coordinateNumber<=0 || coordinateNumber>=11 || coordinateLetter <= 'A'-1 || coordinateLetter >= 'K'){
+      System.out.println("check method: out of bound, calling fireShotNoRepetition method...");
+      finalFireCoordinate = fireShotNoRepetition();
+      
+    }
+    
+    if (alreadyFired == true){
+      System.out.println("check method: already fired. running fireShotNoRepetition method...");
+      finalFireCoordinate = fireShotNoRepetition();
+    }
+    
+    return finalFireCoordinate;
+  }
+  
+
+  
+  // ------------------------------- Method to Place the Ships According to Number of Games Played --------------------------- //
+  public void placeShips() {
+    
+    //decides which game board to output out of a possible three choices based on the number of games played.
+    if (numberOfGames == 0) {
+      
+      //declares the coordinates of the carrier in the boat's array
+      for (int i = 0; i < 5; i++) {
+        CARRIER[j] = ("H," + k);
+        k++;
+        j++;
+      }
+      
+      //changes the button array to display a boat icon where the boats are located
+      BattleShip[8][2] = new JButton("H,2", boat);
+      BattleShip[8][3] = new JButton("H,3", boat);
+      BattleShip[8][4] = new JButton("H,4", boat);
+      BattleShip[8][5] = new JButton("H,5", boat);
+      BattleShip[8][6] = new JButton("H,6", boat);
+      
+      CRUISER[0] = ("D,3");
+      CRUISER[1] = ("E,3");
+      CRUISER[2] = ("F,3");
+      
+      
+      BattleShip[4][3] = new JButton("D,3", boat);
+      BattleShip[5][3] = new JButton("E,3", boat);
+      BattleShip[6][3] = new JButton("F,3", boat);
+      
+      SUBMARINE[0] = ("E,9");
+      SUBMARINE[1] = ("F,9");
+      SUBMARINE[2] = ("G,9");
+      
+      BattleShip[5][9] = new JButton("E,9", boat);
+      BattleShip[6][9] = new JButton("F,9", boat);
+      BattleShip[7][9] = new JButton("G,9", boat);
+      
+      
+      DESTROYER[0] = ("H,10");
+      DESTROYER[1] = ("I,10");
+      
+      
+      BattleShip[8][10] = new JButton("H,10", boat);
+      BattleShip[9][10] = new JButton("I,10", boat);
+      
+      j = 0; //stores the spot in the array for the longer boats (4 and 5 hole boats)
+      k = 2; //stores the beginning numerical coordinate of the boat since it increases by 1
+      
+      for (int i = 0; i < 4; i++) {
+        BATTLESHIP[j] = ("B," + k);
+        k++;
+        j++;
+      }
+      
+      BattleShip[2][2] = new JButton("B,2", boat);
+      BattleShip[2][3] = new JButton("B,3", boat);
+      BattleShip[2][4] = new JButton("B,4", boat);
+      BattleShip[2][5] = new JButton("B,5", boat);
+      
+      //second game board, repeats the process of creating the first game board except the boat coordinates are changed
+    } else if (numberOfGames == 1) {
+      
+      for (int i = 0; i < 5; i++) {
+        CARRIER[j] = ("E," + k);
+        k++;
+        j++;
+      }
+      
+      BattleShip[5][2] = new JButton("E,2", boat);
+      BattleShip[5][3] = new JButton("E,3", boat);
+      BattleShip[5][4] = new JButton("E,4", boat);
+      BattleShip[5][5] = new JButton("E,5", boat);
+      BattleShip[5][6] = new JButton("E,6", boat);
+      
+      
+      CRUISER[0] = ("B,9");
+      CRUISER[1] = ("C,9");
+      CRUISER[2] = ("D,9");
+      
+      
+      BattleShip[2][9] = new JButton("B,9", boat);
+      BattleShip[3][9] = new JButton("C,9", boat);
+      BattleShip[4][9] = new JButton("D,9", boat);
+      
+      k = 2;
+      j = 0;
+      
+      for (int i = 0; i < 3; i++) {
+        SUBMARINE[j] = ("I," + k);
+        k++;
+        j++;
+      }
+      
+      BattleShip[9][2] = new JButton("I,2", boat);
+      BattleShip[9][3] = new JButton("I,3", boat);
+      BattleShip[9][4] = new JButton("I,4", boat);
+      
+      
+      DESTROYER[0] = ("F,1");
+      DESTROYER[1] = ("G,1");
+      
+      
+      BattleShip[6][1] = new JButton("F,1", boat);
+      BattleShip[7][1] = new JButton("G,1", boat);
+      
+      j = 0;
+      k = 2;
+      
+      for (int i = 0; i < 4; i++) {
+        BATTLESHIP[j] = ("B," + k);
+        k++;
+        j++;
+      }
+      
+      BattleShip[2][2] = new JButton("B,2", boat);
+      BattleShip[2][3] = new JButton("B,3", boat);
+      BattleShip[2][4] = new JButton("B,4", boat);
+      BattleShip[2][5] = new JButton("B,5", boat);
+      
+      //third game board, repeats the process of creating the first game board except the boat coordinates are changed
+    } else if (numberOfGames == 2) {
+      
+      for (int i = 0; i < 5; i++) {
+        CARRIER[j] = ("A," + k);
+        k++;
+        j++;
+      }
+      
+      BattleShip[1][2] = new JButton("A,2", boat);
+      BattleShip[1][3] = new JButton("A,3", boat);
+      BattleShip[1][4] = new JButton("A,4", boat);
+      BattleShip[1][5] = new JButton("A,5", boat);
+      BattleShip[1][6] = new JButton("A,6", boat);
+      
+      
+      CRUISER[0] = ("D,9");
+      CRUISER[1] = ("E,9");
+      CRUISER[2] = ("F,9");
+      
+      
+      BattleShip[4][9] = new JButton("D,9", boat);
+      BattleShip[5][9] = new JButton("E,9", boat);
+      BattleShip[6][9] = new JButton("F,9", boat);
+      
+      k = 1;
+      j = 0;
+      
+      for (int i = 0; i < 3; i++) {
+        SUBMARINE[j] = ("J," + k);
+        k++;
+        j++;
+      }
+      
+      BattleShip[10][1] = new JButton("J,1", boat);
+      BattleShip[10][2] = new JButton("J,2", boat);
+      BattleShip[10][3] = new JButton("J,3", boat);
+      
+      
+      DESTROYER[0] = ("B,10");
+      DESTROYER[1] = ("C,10");
+      
+      
+      BattleShip[2][10] = new JButton("B,10", boat);
+      BattleShip[3][10] = new JButton("C,10", boat);
+      
+      j = 0;
+      k = 2;
+      
+      for (int i = 0; i < 4; i++) {
+        BATTLESHIP[j] = ("E," + k);
+        k++;
+        j++;
+      }
+      
+      BattleShip[5][2] = new JButton("E,2", boat);
+      BattleShip[5][3] = new JButton("E,3", boat);
+      BattleShip[5][4] = new JButton("E,4", boat);
+      BattleShip[5][5] = new JButton("E,5", boat);
+      
+    }
+  }
+  
+  
+  //launches the program
+  public static void main(String[] args) {
+    new BattleShipGUI();
+  }
+}
+
+
+
+
+
+
