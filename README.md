@@ -1,4 +1,4 @@
-# ${1:Battleship}
+# Battleship
 A replica of the game Battleship made with Java and love.
 
 This was our cumulative project for grade 11 computer science. It was our first real venture into GUI design and implementation, as well as algorithm creation.
